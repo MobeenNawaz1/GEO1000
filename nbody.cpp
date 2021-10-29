@@ -1,5 +1,4 @@
 
-#modified by Rima Arab and Mobeen Nawaz 
 #define _USE_MATH_DEFINES // https://docs.microsoft.com/en-us/cpp/c-runtime-library/math-constants?view=msvc-160
 #include <cmath>
 #include <iostream>
