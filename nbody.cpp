@@ -1,20 +1,7 @@
-/*
-   Taken from:
-   The Computer Language Benchmarks Game
-   https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
-
-   An implementation pretty much from scratch, with inspiration from the Rust
-   version, which used the idea of saving some of the ingredients of the
-   compution in an array instead of recomputing them.
-   
-   contributed by cvergu
-   slightly modified by bmmeijers
-*/
-
 #define _USE_MATH_DEFINES // https://docs.microsoft.com/en-us/cpp/c-runtime-library/math-constants?view=msvc-160
 #include <cmath>
 #include <iostream>
-
+#include <fstream>
 
 // these values are constant and not allowed to be changed
 const double SOLAR_MASS = 4 * M_PI * M_PI;
@@ -94,7 +81,7 @@ public:
 };
 
 
-void advance(body state[BODIES_COUNT], double dt) {
+void advance(body state[BODIES_COUNT], double dt, std::ostream& os) {
     /*
      * We precompute the quantity (r_i - r_j)
      */
@@ -133,6 +120,12 @@ void advance(body state[BODIES_COUNT], double dt) {
      */
     for (unsigned int i = 0; i < BODIES_COUNT; ++i) {
         state[i].position += state[i].velocity * dt;
+
+        os << state[i].name << ";"
+           << state[i].position.x << ";"
+           << state[i].position.y << ";"
+           << state[i].position.z << ";"
+           << std::endl;
     }
 }
 
@@ -240,19 +233,28 @@ body state[] = {
 
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
+    if (argc != 3) {
         std::cout << "This is " << argv[0] << std::endl;
-        std::cout << "Call this program with an integer as program argument" << std::endl;
+        std::cout << "Call this program with an integer and string as program arguments" << std::endl;
         std::cout << "(to set the number of iterations for the n-body simulation)." << std::endl;
         return EXIT_FAILURE;
     } else {
         const unsigned int n = atoi(argv[1]);
-        offset_momentum(state);
-        std::cout << energy(state) << std::endl;
-        for (int i = 0; i < n; ++i) {
-            advance(state, 0.01);
+        const char* filename = argv[2];
+        std::ofstream ofs(filename);
+        if (ofs.is_open()) {
+            offset_momentum(state);
+            std::cout << energy(state) << std::endl;
+            ofs << "name of the body;position x;position y;position z" << std::endl;
+            for (int i = 0; i < n; ++i) {
+                advance(state, 0.01, ofs);
+            }
+            std::cout << energy(state) << std::endl;
+            ofs.close();
+            return EXIT_SUCCESS;
+        } else {
+            std::cerr << "File " << filename << " could not be opened." << std::endl;
+            return EXIT_FAILURE;
         }
-        std::cout << energy(state) << std::endl;
-        return EXIT_SUCCESS;
     }
 }
